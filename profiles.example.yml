@@ -1,0 +1,15 @@
+# Copy to ~/.dbt/profiles.yml and fill in your own Snowflake details.
+# Credentials are read from environment variables so nothing secret is stored here.
+globepay:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: TRANSFORMER
+      warehouse: DEEL_WH
+      database: GLOBEPAY
+      schema: ANALYTICS
+      threads: 4

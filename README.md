@@ -1,5 +1,52 @@
 # Deel Analytics Engineering Challenge
 
+## How to run
+
+Built with dbt Core (dbt-snowflake) on Snowflake.
+
+**1. Load the raw data into Snowflake.** Create a `GLOBEPAY` database with a
+`RAW` schema, then load the two challenge CSVs as tables (Snowsight's "Load data"
+wizard works, and it picks up the column names from the CSV headers):
+
+| CSV | Table |
+|---|---|
+| globepay_acceptance_report.csv | `GLOBEPAY.RAW.ACCEPTANCE_REPORT` |
+| globepay_chargeback_report.csv | `GLOBEPAY.RAW.CHARGEBACK_REPORT` |
+
+**2. Install dbt.**
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+**3. Set up the connection.** Copy `profiles.example.yml` to `~/.dbt/profiles.yml`
+and set the environment variables it uses. Change the role and warehouse if yours
+are named differently. Models are built in `GLOBEPAY.ANALYTICS`.
+
+```bash
+export SNOWFLAKE_ACCOUNT=<your_account>
+export SNOWFLAKE_USER=<your_user>
+export SNOWFLAKE_PASSWORD=<your_password>
+```
+
+**4. Build.**
+
+```bash
+dbt deps     # installs dbt_utils
+dbt debug    # checks the connection
+dbt build    # builds the models and runs all tests
+```
+
+`dbt build` should finish with 34 passes and 1 warning. The warning is expected,
+it flags the one negative amount described below.
+
+`dbt docs generate && dbt docs serve` opens the documentation site with the
+lineage graph.
+
+## PART 1
+
 ## 1. Preliminary data exploration
 
 Two CSVs (acceptance report and chargeback report) were given with no schema, plus
@@ -169,3 +216,84 @@ Naming conventions help as well:
 - `is_` for booleans
 - `_ts` for timestamps
 - `_usd` / `_local` suffixes for amounts
+
+
+## PART 2
+
+### The model
+
+Everything for this part comes from one table:
+`globepay.analytics.fct_globepay__transactions`. It has one row per payment
+attempt, so counting rows counts transactions. A few things to know when using it:
+
+- Use `amount_usd` for any totals across countries. `amount_local` is in each
+  country's own currency, so it can't be summed across countries.
+- `transaction_state` is either ACCEPTED or DECLINED.
+- `transaction_date` is in UTC. Use `date_trunc` on it to group by week or month.
+- `is_chargeback` is null when a transaction has no record in the chargeback
+  report. That's how missing chargeback data shows up.
+
+The results of each query, run in Snowflake, are in [results_snowflake.pdf](results_snowflake.pdf).
+
+### Q1. What is the acceptance rate over time?
+
+Acceptance rate = accepted transactions / all transactions, grouped by month.
+
+```sql
+select
+    date_trunc('month', transaction_date) as transaction_month,
+    count(transaction_id) as total_transactions,
+    count(case when transaction_state = 'ACCEPTED' then transaction_id end) as accepted_transactions,
+    round(
+        count(case when transaction_state = 'ACCEPTED' then transaction_id end)
+        / count(transaction_id) * 100,
+        1
+    ) as acceptance_rate_pct
+from globepay.analytics.fct_globepay__transactions
+group by 1
+order by 1;
+```
+
+The acceptance rate is fairly stable at around 70% (69.6% overall). It dips to
+67.8% in April and is highest in June at 71.7%. Swapping `'month'` for `'week'` or
+`'day'` gives a more detailed view.
+
+### Q2. List the countries where the amount of declined transactions went over $25M
+
+```sql
+select
+    country_code,
+    count(transaction_id) as declined_transactions,
+    sum(amount_usd) as declined_amount_usd
+from globepay.analytics.fct_globepay__transactions
+where transaction_state = 'DECLINED'
+group by 1
+having sum(amount_usd) > 25000000
+order by declined_amount_usd desc;
+```
+
+Four countries went over $25M: FR, UK, AE and US.
+
+
+### Q3. Which transactions are missing chargeback data?
+
+```sql
+select
+    transaction_id,
+    transaction_ts,
+    country_code,
+    transaction_state,
+    amount_usd
+from globepay.analytics.fct_globepay__transactions
+where is_chargeback is null
+order by transaction_ts;
+```
+
+The query returns 0 rows. Every transaction in the acceptance report has a
+matching record in the chargeback report.
+
+Note that the model is set up to catch this. The fact table left joins
+the chargebacks onto the transactions, so a transaction without a chargeback
+record is kept with `is_chargeback` as null, instead of being dropped. The
+chargeback column itself is tested as never null, so a null in the fact table
+can only mean the record is missing.
