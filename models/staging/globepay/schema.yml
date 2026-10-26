@@ -27,9 +27,6 @@ models:
               arguments:
                 values: ['ACCEPTED', 'DECLINED']
 
-      - name: is_accepted
-        description: True when `transaction_state` is ACCEPTED.
-
       - name: is_cvv_provided
         description: Whether the card CVV was supplied.
 

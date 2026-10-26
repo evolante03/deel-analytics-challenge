@@ -18,10 +18,6 @@ final as (
 
         -- attributes
         state as transaction_state,
-        case
-            when state = 'ACCEPTED' then true
-            else false
-        end as is_accepted,
         cvv_provided as is_cvv_provided,
         country as country_code,
         currency as currency_code,
