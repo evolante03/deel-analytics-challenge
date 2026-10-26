@@ -1,0 +1,10 @@
+.venv/
+target/
+dbt_packages/
+logs/
+.user.yml
+.DS_Store
+profiles.yml
+
+# raw CSVs (already loaded to GLOBEPAY.RAW; not redistributed)
+data/
