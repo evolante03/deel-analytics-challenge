@@ -1,0 +1,68 @@
+version: 2
+
+sources:
+  - name: globepay
+    database: globepay
+    schema: raw
+    tables:
+      - name: acceptance_report
+        columns:
+          - name: external_ref
+            data_tests:
+              - unique
+              - not_null
+
+          # dropped in staging because it is constant; warn if that changes
+          - name: status
+            data_tests:
+              - not_null:
+                  config:
+                    severity: warn
+              - accepted_values:
+                  arguments:
+                    values: [true]
+                    quote: false
+                  config:
+                    severity: warn
+
+          - name: source
+            data_tests:
+              - not_null:
+                  config:
+                    severity: warn
+              - accepted_values:
+                  arguments:
+                    values: ['GLOBALPAY']
+                  config:
+                    severity: warn
+
+      - name: chargeback_report
+        columns:
+          - name: external_ref
+            data_tests:
+              - unique
+              - not_null
+
+          # dropped in staging because it is constant; warn if that changes
+          - name: status
+            data_tests:
+              - not_null:
+                  config:
+                    severity: warn
+              - accepted_values:
+                  arguments:
+                    values: [true]
+                    quote: false
+                  config:
+                    severity: warn
+
+          - name: source
+            data_tests:
+              - not_null:
+                  config:
+                    severity: warn
+              - accepted_values:
+                  arguments:
+                    values: ['GLOBALPAY']
+                  config:
+                    severity: warn
