@@ -170,6 +170,9 @@ flowchart LR
     D --> E
 ```
 
+The lineage graph and project structure from `dbt docs` are in
+[results_dbt_docs.pdf](results_dbt_docs.pdf).
+
 ## 4. Tips on macros, data validation and documentation
 
 ### Macros
