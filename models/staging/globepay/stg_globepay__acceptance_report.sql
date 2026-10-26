@@ -17,7 +17,7 @@ final as (
     select
         -- ids
         external_ref as transaction_id,
-        ref as event_id,
+        ref as globepay_reference_id,
 
         -- timestamps
         date_time as transaction_ts,

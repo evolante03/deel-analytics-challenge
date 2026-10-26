@@ -13,8 +13,8 @@ models:
           - unique
           - not_null
 
-      - name: event_id
-        description: Processor event id (raw `ref`, `evt_…`).
+      - name: globepay_reference_id
+        description: Globepay reference id (raw `ref`, `evt_…`).
 
       - name: transaction_ts
         description: Transaction timestamp, UTC.

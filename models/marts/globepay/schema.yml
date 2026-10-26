@@ -3,10 +3,8 @@ version: 2
 models:
   - name: fct_globepay__transactions
     description: >
-      One row per Globepay card payment attempt, with its acceptance outcome,
-      USD amount and chargeback status. Built for analysing acceptance rates,
-      declined volumes and chargebacks. Every transaction is kept even when
-      chargeback data is missing; see `is_chargeback`.
+      One row per Globepay card payment attempt. Every transaction is kept even when
+      chargeback data is missing.
     data_tests:
       - dbt_utils.equal_rowcount:
           arguments:
@@ -18,8 +16,8 @@ models:
           - unique
           - not_null
 
-      - name: event_id
-        description: Processor event id (`evt_…`).
+      - name: globepay_reference_id
+        description: Globepay reference id (`evt_…`).
 
       - name: transaction_ts
         description: Transaction timestamp, UTC.
@@ -43,13 +41,13 @@ models:
         description: Whether the card CVV was supplied.
 
       - name: country_code
-        description: Two-letter country code as sent by Globepay ('UK', not ISO 'GB').
+        description: Two-letter country code as sent by Globepay.
 
       - name: currency_code
-        description: ISO-4217 currency of `amount_local`.
+        description: Currency of `amount_local`.
 
       - name: amount_local
-        description: Amount in local currency, major units.
+        description: Amount in local currency.
 
       - name: fx_rate_to_usd
         description: Units of `currency_code` per 1 USD at the time of the transaction.
@@ -64,5 +62,4 @@ models:
       - name: is_chargeback
         description: >
           Whether the transaction was charged back. Null means the transaction
-          has no record in the chargeback report, i.e. chargeback data is
-          missing (`where is_chargeback is null`).
+          has no record in the chargeback report.

@@ -23,7 +23,7 @@ final as (
     select
         -- ids
         acceptance.transaction_id,
-        acceptance.event_id,
+        acceptance.globepay_reference_id,
 
         -- timestamps
         acceptance.transaction_ts,
