@@ -76,4 +76,8 @@ models:
                 field: transaction_id
 
       - name: is_chargeback
-        description: Whether the transaction was charged back.
+        description: >
+          Whether the transaction was charged back. Never null here, so a null
+          in the fact model always means the chargeback record is missing.
+        data_tests:
+          - not_null

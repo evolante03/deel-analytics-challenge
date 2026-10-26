@@ -13,10 +13,3 @@ seed-paths: ["seeds"]
 clean-targets:
   - target
   - dbt_packages
-
-models:
-  globepay:
-    staging:
-      +materialized: view
-    marts:
-      +materialized: table

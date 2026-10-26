@@ -6,7 +6,7 @@ models:
       One row per Globepay card payment attempt, with its acceptance outcome,
       USD amount and chargeback status. Built for analysing acceptance rates,
       declined volumes and chargebacks. Every transaction is kept even when
-      chargeback data is missing; see `has_chargeback_data`.
+      chargeback data is missing; see `is_chargeback`.
     data_tests:
       - dbt_utils.equal_rowcount:
           arguments:
@@ -63,10 +63,6 @@ models:
 
       - name: is_chargeback
         description: >
-          Whether the transaction was charged back. Null when there is no
-          chargeback record for the transaction (`has_chargeback_data` is false).
-
-      - name: has_chargeback_data
-        description: True when the transaction has a record in the chargeback report.
-        data_tests:
-          - not_null
+          Whether the transaction was charged back. Null means the transaction
+          has no record in the chargeback report, i.e. chargeback data is
+          missing (`where is_chargeback is null`).

@@ -1,3 +1,9 @@
+{{
+    config(
+        materialized='table'
+    )
+}}
+
 with
 
 acceptance as (
@@ -35,11 +41,7 @@ final as (
         acceptance.amount_usd,
 
         -- chargebacks
-        chargebacks.is_chargeback,
-        case
-            when chargebacks.transaction_id is not null then true
-            else false
-        end as has_chargeback_data
+        chargebacks.is_chargeback
 
     from acceptance
     left join chargebacks
