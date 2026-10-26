@@ -2,9 +2,7 @@ version: 2
 
 models:
   - name: fct_globepay__transactions
-    description: >
-      One row per Globepay card payment attempt. Every transaction is kept even when
-      chargeback data is missing.
+    description: One row per Globepay card payment attempt. Every transaction is kept even when chargeback data is missing.
     data_tests:
       - dbt_utils.equal_rowcount:
           arguments:
@@ -60,6 +58,4 @@ models:
           - not_null
 
       - name: is_chargeback
-        description: >
-          Whether the transaction was charged back. Null means the transaction
-          has no record in the chargeback report.
+        description: Whether the transaction was charged back. Null means the transaction has no record in the chargeback report.

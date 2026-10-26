@@ -2,25 +2,22 @@ version: 2
 
 models:
   - name: stg_globepay__acceptance_report
-    description: >
-      One row per card payment attempt processed by Globepay. Raw `status`
-      (always TRUE) and `source` (always 'GLOBALPAY') are dropped because they
-      carry no information.
+    description: One row per Globepay card payment attempt. Drops `status` and `source` since they're always the same value.
     columns:
       - name: transaction_id
-        description: Globepay transaction reference (raw `external_ref`). Primary key.
+        description: Primary key. Raw `external_ref`.
         data_tests:
           - unique
           - not_null
 
       - name: globepay_reference_id
-        description: Globepay reference id (raw `ref`, `evt_…`).
+        description: Globepay reference id. Raw `ref` (`evt_…`).
 
       - name: transaction_ts
         description: Transaction timestamp, UTC.
 
       - name: transaction_state
-        description: Outcome of the payment attempt.
+        description: ACCEPTED or DECLINED.
         data_tests:
           - not_null
           - accepted_values:
@@ -31,15 +28,13 @@ models:
         description: Whether the card CVV was supplied.
 
       - name: country_code
-        description: Two-letter country code as sent by Globepay. Uses 'UK' rather than ISO-3166 'GB'.
+        description: Country code as sent by Globepay. Uses UK, not GB.
 
       - name: currency_code
-        description: ISO-4217 currency of `amount_local`.
+        description: Currency of `amount_local`.
 
       - name: amount_local
-        description: >
-          Amount in local currency, major units (e.g. 1020.46). The API spec says
-          minor units, but the data does not support that.
+        description: Amount in local currency, e.g. 1020.46. The API spec says minor units but the data is in major units.
         data_tests:
           - dbt_utils.expression_is_true:
               arguments:
@@ -48,10 +43,7 @@ models:
                 severity: warn
 
       - name: fx_rate_to_usd
-        description: >
-          Units of `currency_code` per 1 USD, taken from the raw `rates` JSON
-          snapshot attached to the transaction. Null would mean the currency is
-          missing from the snapshot.
+        description: Rate for `currency_code` per 1 USD, taken from the `rates` JSON on each row.
         data_tests:
           - not_null
 
@@ -61,12 +53,10 @@ models:
           - not_null
 
   - name: stg_globepay__chargeback_report
-    description: >
-      Chargeback outcome per transaction. Raw `status` and `source` are dropped
-      because they are constant.
+    description: One row per transaction with its chargeback flag. Drops `status` and `source` since they're always the same value.
     columns:
       - name: transaction_id
-        description: Globepay transaction reference (raw `external_ref`). Primary key.
+        description: Primary key. Raw `external_ref`.
         data_tests:
           - unique
           - not_null
@@ -76,8 +66,6 @@ models:
                 field: transaction_id
 
       - name: is_chargeback
-        description: >
-          Whether the transaction was charged back. Never null here, so a null
-          in the fact model always means the chargeback record is missing.
+        description: Whether the transaction was charged back. Never null here, so a null in the fact table means the record is missing.
         data_tests:
           - not_null
